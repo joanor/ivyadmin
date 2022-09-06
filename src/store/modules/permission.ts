@@ -170,7 +170,7 @@ export const usePermissionStore = defineStore('permission', {
       // 保存最终的路由结果
       this.setUltimateRoutes(ultimateRoutes)
 
-      // 动态路由
+      // 动态添加路由
       ultimateRoutes.forEach(route => {
         router.addRoute(route)
       })

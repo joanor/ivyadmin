@@ -8,10 +8,19 @@ export {}
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
     ElBacktop: typeof import('element-plus/es')['ElBacktop']
+    ElButton: typeof import('element-plus/es')['ElButton']
+    ElCheckbox: typeof import('element-plus/es')['ElCheckbox']
     ElDropdown: typeof import('element-plus/es')['ElDropdown']
     ElDropdownItem: typeof import('element-plus/es')['ElDropdownItem']
     ElDropdownMenu: typeof import('element-plus/es')['ElDropdownMenu']
+    ElForm: typeof import('element-plus/es')['ElForm']
+    ElFormItem: typeof import('element-plus/es')['ElFormItem']
+    ElIcon: typeof import('element-plus/es')['ElIcon']
+    ElInput: typeof import('element-plus/es')['ElInput']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
+    IEpLollipop: typeof import('~icons/ep/lollipop')['default']
+    IEpMenu: typeof import('~icons/ep/menu')['default']
+    IEpSwitchButton: typeof import('~icons/ep/switch-button')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }

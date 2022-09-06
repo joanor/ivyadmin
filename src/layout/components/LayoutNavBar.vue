@@ -9,15 +9,21 @@
       :to="'/' + item.routePath"
       v-for="item in nonFoldMenuList"
       :key="item.routePath"
+      data-type="nonFold"
+      @mouseenter="showFoldMenus($event, item)"
+      @mouseleave="emit('expand', false)"
     >
       {{ item.resourceName }}
     </router-link>
-    <i
-      class="el-icon-menu cursor-pointer"
-      @mouseenter="showFoldMenus"
-      @mouseleave="emit('foldmenu', false)"
+    <el-icon
+      class="i-ant-design-menu-outlined mr2 cursor-pointer"
+      :size="20"
+      color="#fff"
+      data-type="fold"
       v-if="isShowFold"
-    ></i>
+      @mouseenter="showFoldMenus"
+      @mouseleave="emit('expand', false)"
+    ></el-icon>
   </div>
 </template>
 
@@ -32,14 +38,24 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const emit = defineEmits(['expand'])
+
 const menuContainer = ref<HTMLDivElement>()
 let nonFoldMenuList = reactive<ResourceRoute[]>(cloneDeep(props.menuList)) // 非折叠菜单列表
 let foldMenuList = reactive<ResourceRoute[]>([]) // 折叠菜单列表
-const emit = defineEmits(['foldmenu'])
-const showFoldMenus = function (e: MouseEvent) {
+
+const showFoldMenus = function (e: MouseEvent, child: ResourceRoute) {
   const target = e.target as HTMLElement
-  emit('foldmenu', {
-    foldMenuList,
+  const { type } = target.dataset
+  let currentChilds: ResourceRoute[] = []
+  if (type === 'nonFold') {
+    currentChilds = child?.children ?? []
+  }
+
+  const tFoldMenuList: ResourceRoute[] =
+    type === 'fold' ? cloneDeep(foldMenuList) : currentChilds
+  emit('expand', {
+    foldMenuList: tFoldMenuList,
     x: target.offsetLeft || 0,
     y: e.pageY,
   })
@@ -49,7 +65,8 @@ const isShowFold = computed(() => foldMenuList.length > 0)
 
 const widthMap = new Map<number, number>()
 
-function setFoldMenus() {
+// 设置一级菜单，是否存在折叠的情况
+function setFirstLevelFoldMenus() {
   const marginRight = 48
   if (menuContainer.value) {
     let sumWidth = 0
@@ -98,7 +115,7 @@ watch(
   () => props.width,
   (newValue: number) => {
     if (newValue > 0) {
-      setFoldMenus()
+      setFirstLevelFoldMenus()
     }
   },
   {

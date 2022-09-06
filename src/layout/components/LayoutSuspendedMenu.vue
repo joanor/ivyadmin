@@ -5,24 +5,41 @@
     @mouseenter="handleMouseEvent(true)"
     @mouseleave="handleMouseEvent(false)"
   >
-    <router-link
+    {{ props.foldMenus }}
+    <!-- <router-link
       class="menu"
       :to="item.path"
-      v-for="item in foldMenus"
+      v-for="item in props.foldMenus"
       :key="item.path"
     >
-      {{ item.menuName }}
-    </router-link>
+      {{ item.resourceName }}
+    </router-link> -->
   </div>
 </template>
 
 <script setup lang="ts">
-defineProps(['foldMenus', 'left'])
+import type { ResourceRoute } from '@/store'
+import { watch } from 'vue'
+
+const props = defineProps<{
+  foldMenus: ResourceRoute[]
+  left: number
+}>()
 
 const emit = defineEmits(['isMouseOnFoldMenus'])
 const handleMouseEvent = (flag: boolean) => {
   emit('isMouseOnFoldMenus', flag)
 }
+
+watch(
+  props.foldMenus,
+  newValue => {
+    console.log(`newValue`, newValue)
+  },
+  {
+    immediate: true,
+  }
+)
 </script>
 
 <style lang="scss" scoped>

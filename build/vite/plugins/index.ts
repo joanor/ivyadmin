@@ -1,4 +1,4 @@
-import type { Plugin, PluginOption } from 'vite'
+import type { PluginOption } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import legacy from '@vitejs/plugin-legacy'
@@ -8,9 +8,12 @@ import { configSvgIconsPlugin } from './svgSprite'
 import { configHtmlPlugin } from './html'
 import { configStyleImportPlugin } from './styleImport'
 import { configThemePlugin } from './theme'
+import { configUnocssPlugin } from './unocss'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
+import Icons from 'unplugin-icons/vite'
+import IconsResolver from 'unplugin-icons/resolver'
 
 export function createVitePlugins(viteEnv: ViteEnv, isBuild: boolean) {
   const {
@@ -27,11 +30,25 @@ export function createVitePlugins(viteEnv: ViteEnv, isBuild: boolean) {
     vueSetupExtend(),
     // element plus自动引入组件
     AutoImport({
-      resolvers: [ElementPlusResolver()],
+      resolvers: [
+        ElementPlusResolver(),
+        IconsResolver({
+          prefix: 'Icon',
+        }),
+      ],
     }),
     Components({
-      resolvers: [ElementPlusResolver()],
+      resolvers: [
+        IconsResolver({
+          enabledCollections: ['ant-design'],
+        }),
+        ElementPlusResolver(),
+      ],
     }),
+    Icons({
+      autoInstall: true,
+    }),
+    configUnocssPlugin(),
   ]
 
   // @vitejs/plugin-legacy
