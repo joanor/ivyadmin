@@ -7,6 +7,10 @@ import { isEmpty } from 'ivy2'
 // 可以不需要token的页面
 const WHITE_ROUTELIST = window.config.whiteList
 
+window.NProgress.configure({
+  showSpinner: false,
+})
+
 export function setupRouterGuard(router: Router) {
   router.beforeEach(async to => {
     window.NProgress.start()

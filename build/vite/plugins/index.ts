@@ -9,6 +9,7 @@ import { configHtmlPlugin } from './html'
 import { configStyleImportPlugin } from './styleImport'
 import { configThemePlugin } from './theme'
 import { configUnocssPlugin } from './unocss'
+import { configMockServerPlugin } from './mockServer'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
@@ -23,7 +24,17 @@ export function createVitePlugins(viteEnv: ViteEnv, isBuild: boolean) {
   } = viteEnv
 
   const vitePlugins: PluginOption | PluginOption[] = [
-    vue(),
+    vue({
+      template: {
+        compilerOptions: {
+          /**
+           * 在使用微前端microapp的时候
+           * 注册自定义组件micro-app 防止控制台警告
+           */
+          isCustomElement: tag => /^micro-app/.test(tag),
+        },
+      },
+    }),
     // jsx和tsx
     vueJsx(),
     // 在setup语法糖上添加name属性
@@ -52,7 +63,11 @@ export function createVitePlugins(viteEnv: ViteEnv, isBuild: boolean) {
   ]
 
   // @vitejs/plugin-legacy
-  VITE_LEGACY && isBuild && vitePlugins.push(legacy)
+  VITE_LEGACY && isBuild && vitePlugins.push(legacy())
+
+  // vite-plugin-mock
+  const mockServerPlugin = configMockServerPlugin(isBuild)
+  !isBuild && mockServerPlugin && vitePlugins.push(mockServerPlugin)
 
   // vite-plugin-style-import
   vitePlugins.push(configStyleImportPlugin())

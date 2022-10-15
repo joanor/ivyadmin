@@ -36,12 +36,13 @@ export const useUserStore = defineStore('user', {
     loginByUser(data: LoginForm): Promise<boolean> {
       return new Promise((resolve, reject) => {
         http
-          .post<Token>({
-            url: `api/auth/token`,
-            data,
+          .get<Token>({
+            url: `api/login`,
+            // data,
           })
           .then(res => {
-            store.set(SYS_CONSTANT.AUTH_TOKEN, res.token)
+            console.log(`1234567890`)
+            // store.set(SYS_CONSTANT.AUTH_TOKEN, res.token)
             resolve(true)
           })
           .catch(err => {
