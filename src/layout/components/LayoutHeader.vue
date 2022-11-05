@@ -1,64 +1,143 @@
 <template>
-  <div class="box-border relative app-header">
-    <slot>
-      <!-- 0-1. 系统左上角相关 -->
-      <div ref="project" class="float-left h-full app-header-projectname">
-        {{ projectName }}
+  <div class="app-header flex items-center justify-between p-4">
+    <div class="flex items-center">
+      <!-- <SvgIcon name="sc" size="32"></SvgIcon> -->
+      <!-- <div class="banner"></div> -->
+      <img src="/gs_banner.png" alt="" class="banner mr-2" width="260" />
+      <span class="ml-4 sc-project-title">{{ title }}</span>
+    </div>
+    <!-- <el-button type="primary" size="default" @click="jumpTo">跳转</el-button> -->
+
+    <div class="flex items-center">
+      <div class="flex items-center">
+        <span class="qjsx mr-1 w-24">全局筛选</span>
+        <el-popover
+          placement="top-start"
+          trigger="hover"
+          content="全局筛选所需模块"
+        >
+          <template #reference>
+            <el-icon class="mr-4" :size="14" color="#c9cdd4">
+              <IAntDesignQuestionCircleOutlined />
+            </el-icon>
+          </template>
+        </el-popover>
+        <el-input
+          v-model="input2"
+          class="mr-4"
+          placeholder="全部"
+          :suffix-icon="Search"
+        />
       </div>
-
-      <!-- 0-2. header栏中间菜单部分 -->
-      <LayoutNavBar
-        class="float-left h-full"
-        @expand="showFoldMenuList"
-        :width="width"
-        :menuList="menuList"
-      ></LayoutNavBar>
-
-      <!-- 0-3. 系统右上角相关 -->
-      <LayoutSetting ref="system"></LayoutSetting>
-
-      <!-- 1-1. 悬浮菜单 -->
-      <LayoutSuspendedMenu
-        :foldMenus="foldMenus"
-        :left="left"
-        v-if="showFold"
-      ></LayoutSuspendedMenu>
-    </slot>
+      <div class="flex items-center">
+        <el-dropdown
+          trigger="click"
+          popper-class="notice"
+          :hide-on-click="false"
+          placement="bottom-end"
+        >
+          <IconCircle class="mr-4">
+            <el-icon :size="12">
+              <el-badge is-dot :hidden="false">
+                <IEpBell />
+              </el-badge>
+            </el-icon>
+          </IconCircle>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item>
+                <NoticeInfo></NoticeInfo>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+        <IconCircle class="mr-4">
+          <el-icon :size="12">
+            <IEpSetting />
+          </el-icon>
+        </IconCircle>
+        <el-dropdown trigger="click" @command="handleCommand">
+          <SvgIcon name="avatar" size="32" className="cursor-pointer"></SvgIcon>
+          <!-- <el-icon class="el-icon--right">
+              <arrow-down />
+            </el-icon> -->
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="exit">退出</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+        <!-- <IconCircle class="ml-4">
+          <IAntDesignMessageFilled></IAntDesignMessageFilled>
+        </IconCircle> -->
+      </div>
+    </div>
   </div>
 </template>
 
-<script setup lang="ts">
-import LayoutNavBar from './LayoutNavBar.vue'
-import LayoutSetting from './LayoutSetting.vue'
-import LayoutSuspendedMenu from './LayoutSuspendedMenu.vue'
-import useHeader from '@/hooks/web/useHeader'
-import useFoldMenu from '@/hooks/web/useFoldMenu'
-import { usePermissionStore } from '@/store'
+<script lang="ts" setup>
+import IconCircle from './IconCircle.vue'
+import NoticeInfo from './NoticeInfo.vue'
+import { Search } from '@element-plus/icons-vue'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import store2 from 'store2'
+
+const router = useRouter()
 
 defineProps({
-  projectName: {
+  title: {
     type: String,
     required: true,
   },
 })
 
-const { project, system, width } = useHeader()
-const { menuList } = usePermissionStore()
+const input2 = ref('')
 
-// 悬浮框显示多余菜单
-const { foldMenus, showFold, left, handleMouseOnFoldMenus, showFoldMenuList } =
-  useFoldMenu()
+const jumpTo = () => {
+  router.push('/app-vite2:page*')
+}
+
+const handleCommand = (e: string | number | object) => {
+  console.log('点击了 ', e)
+  switch (e) {
+    case 'exit':
+      store2.clearAll()
+      router.push('/login')
+  }
+}
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .app-header {
-  background-color: $blue;
-  height: 70px;
-  padding: 0 20px;
-  &-projectname {
-    line-height: 70px;
-    font-size: 28px;
-    color: $white;
+  height: 60px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e6eb;
+
+  .holder-img {
+    width: 30px;
+    height: 30px;
+    border: solid 1px;
+  }
+
+  .sc-project-title {
+    font-size: 20px;
+    font-family: PingFang SC, PingFang SC-Medium;
+    font-weight: 600;
+    text-align: LEFT;
+    color: #1d2129;
+    line-height: 28px;
+  }
+
+  .qjsx {
+    // width: 100px;
+    height: 22px;
+    font-size: 14px;
+    font-family: PingFang SC, PingFang SC-Regular;
+    font-weight: 400;
+    text-align: center;
+    color: #4e5969;
+    line-height: 22px;
   }
 }
 </style>

@@ -14,7 +14,6 @@ window.NProgress.configure({
 export function setupRouterGuard(router: Router) {
   router.beforeEach(async to => {
     window.NProgress.start()
-
     if (store.get(SYS_CONSTANT.AUTH_TOKEN)) {
       const useGlobal = useGlobalStore()
       const useUser = useUserStore()

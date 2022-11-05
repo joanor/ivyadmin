@@ -1,25 +1,37 @@
 <template>
-  <div class="overflow-hidden">
-    <!-- header -->
-    <LayoutHeader :projectName="projectName"></LayoutHeader>
+  <div class="app-sc overflow-hidden">
+    <!-- Header -->
+    <LayoutHeader :title="projectName"></LayoutHeader>
 
-    <!-- 面包屑 -->
-    <LayoutBreadCrumb></LayoutBreadCrumb>
+    <div class="flex">
+      <!-- 左侧菜单 -->
+      <LayoutSideBar></LayoutSideBar>
 
-    <!-- 主体内容 -->
-    <LayoutContainer></LayoutContainer>
+      <!-- 主体内容 -->
+      <LayoutContainer class="flex-1">
+        <router-view v-slot="{ Component }">
+          <!-- <transition name="fade-transform" mode="out-in"> -->
+          <component :is="Component" />
+          <!-- </transition> -->
+        </router-view>
+      </LayoutContainer>
+    </div>
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
+import { ref, computed } from 'vue'
 import LayoutHeader from './components/LayoutHeader.vue'
-import LayoutBreadCrumb from './components/LayoutBreadCrumb.vue'
-import LayoutContainer from './components/LayoutContainer.vue'
-import { computed } from 'vue'
+import LayoutSideBar from './components/LayoutSideBar/index.vue'
 
-const projectName = computed(() => {
-  return `${window.config.projectName}`
-})
+import LayoutContainer from './components/LayoutContainer.vue'
+const cachedViews = ref('')
+
+const projectName = computed(() => `${window.config.projectName}`)
 </script>
 
-<style scoped></style>
+<style lang="scss" scoped>
+.app-sc {
+  background-color: #f7f8fa;
+}
+</style>
