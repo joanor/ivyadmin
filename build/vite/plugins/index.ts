@@ -51,7 +51,7 @@ export function createVitePlugins(viteEnv: ViteEnv, isBuild: boolean) {
     Components({
       resolvers: [
         IconsResolver({
-          enabledCollections: ['ant-design'],
+          enabledCollections: ['ant-design', 'ep'],
         }),
         ElementPlusResolver(),
       ],
