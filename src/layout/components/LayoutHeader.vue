@@ -94,10 +94,6 @@ defineProps({
 
 const input2 = ref('')
 
-const jumpTo = () => {
-  router.push('/app-vite2:page*')
-}
-
 const handleCommand = (e: string | number | object) => {
   console.log('点击了 ', e)
   switch (e) {

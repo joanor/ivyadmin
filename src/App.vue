@@ -1,14 +1,19 @@
 <template>
-  <Transition name="custom-classes" enter-active-class="animate__animated animate__tada"
-    leave-active-class="animate__animated animate__bounceOutRight">
-    <el-config-provider :locale="zhCn">
-      <router-view></router-view>
-    </el-config-provider>
-  </Transition>
+  <el-config-provider :locale="zhCn">
+    <router-view v-slot="{ Component }">
+      <transition
+        name="custom-classes"
+        enter-active-class="animate__animated animate__tada"
+        leave-active-class="animate__animated animate__bounceOutRight"
+      >
+        <component :is="Component" />
+      </transition>
+    </router-view>
+  </el-config-provider>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import { _console, getBrowserInfo } from 'ivy2'
 import zhCn from 'element-plus/lib/locale/lang/zh-cn'
 
@@ -26,7 +31,6 @@ if (browserInfo) {
     _console.error(`当前浏览器：${realBrowserInfo}`)
   }
 }
-
 </script>
 
 <style scoped>

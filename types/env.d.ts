@@ -40,6 +40,7 @@ interface Window {
     basic_url: string
     [propName: string]: string | string[]
   }
+  intervalTimer: NodeJS.Timer
   gsap: typeof import('gsap')
   Flip: typeof import('gsap/Flip').Flip
   Power0: {

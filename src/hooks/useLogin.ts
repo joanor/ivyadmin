@@ -27,6 +27,7 @@ export default function () {
           ...loginForm,
         } as LoginForm)
         .then(res => {
+          console.log(`跳转的接口`, res)
           if (res) {
             router.push('/')
           }

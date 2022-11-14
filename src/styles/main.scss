@@ -1,4 +1,27 @@
-#app {
-  height: 100%;
-  width: 100%
+/* 
+ * scrollbar样式设置
+ */
+.scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
+
+// .scrollbar::-webkit-scrollbar-track {
+//   background: rgba(144, 147, 153);
+//   border-radius: 2px;
+// }
+
+.scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(144, 147, 153);
+  border-radius: 10px;
+}
+
+.scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(144, 147, 153, .5);
+}
+
+.scrollbar::-webkit-scrollbar-corner {
+  background: #179a16;
+}
+
+/*^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^*/

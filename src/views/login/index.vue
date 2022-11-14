@@ -61,15 +61,17 @@ import useLogin from '@/hooks/useLogin'
 const checked = ref(false)
 const loading = ref(false)
 
+// 登录功能
 const { loginFormRef, loginForm, loginFormRules, handleLoginForm } = useLogin()
 
+// 背景视频控制
 const controlVideoPlaySpeed = () => {
   const $video = document.getElementById('bg_video') as HTMLVideoElement
   $video.playbackRate = 0.66
 }
-
 onMounted(controlVideoPlaySpeed)
 
+// 欢迎语句
 const timeSayHello = computed(() => {
   let date = new Date().getHours()
   let hoursTip = ''
@@ -83,6 +85,7 @@ const timeSayHello = computed(() => {
   return hoursTip
 })
 
+// 项目名称
 const projectName = computed(() => `${window.config.projectName}`)
 </script>
 
