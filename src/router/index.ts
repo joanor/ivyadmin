@@ -20,6 +20,15 @@ export const routes: AppRouteRecordRaw[] = [
           icon: 'example',
         },
       },
+      {
+        name: 'analysis',
+        path: '/analysis/:page*',
+        component: () => import('@/views/ivyadmin/analysis.vue'),
+        meta: {
+          title: '控制台',
+          icon: 'example',
+        },
+      },
     ],
   },
 ]

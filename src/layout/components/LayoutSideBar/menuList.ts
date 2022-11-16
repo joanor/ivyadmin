@@ -7,13 +7,13 @@ export interface Menu {
 
 export const menuList: Menu[] = [
   {
-    menuId: 'app_user_overview',
+    menuId: 'dashboard',
     icon: 'user_overview',
     menuName: '用户概览',
     children: [],
   },
   {
-    menuId: 'app_energy_analysis',
+    menuId: 'analysis',
     icon: 'energy_analysis',
     menuName: '用能分析',
     children: [
@@ -127,7 +127,7 @@ export const menuList: Menu[] = [
             icon: '',
             menuName: '表计明细',
             children: [],
-          }, 
+          },
         ],
       },
       {

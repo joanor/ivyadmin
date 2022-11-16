@@ -4,11 +4,8 @@ import { autoImport } from '@/libs/utils'
 
 export function setupStyles() {
   autoImport(
-    import.meta.glob(
-      ['./**/*', '!./var.scss', '!./modules/**/*', '!./element/**/index.scss'],
-      {
-        eager: true,
-      }
-    )
+    import.meta.glob(['./**/*', '!./var.scss', '!./modules/**/*'], {
+      eager: true,
+    })
   )
 }

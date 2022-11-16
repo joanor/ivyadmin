@@ -11,7 +11,7 @@
         <template v-if="menu.children.length > 0">
           <el-sub-menu :key="menu.menuId" :index="menu.menuId">
             <template #title>
-              <el-icon class="mr-4">
+              <el-icon class="mr-3">
                 <SvgIcon :name="menu.icon" size="16"></SvgIcon>
               </el-icon>
               <span>{{ menu.menuName }}</span>
@@ -19,6 +19,7 @@
             <el-menu-item
               v-for="cmenu in menu.children"
               :index="'/' + cmenu.menuId"
+              class="ml-2"
             >
               {{ cmenu.menuName }}
             </el-menu-item>
@@ -26,7 +27,7 @@
         </template>
         <template v-else>
           <el-menu-item :index="menu.menuId">
-            <el-icon class="mr-4">
+            <el-icon class="mr-3">
               <SvgIcon :name="menu.icon" size="16"></SvgIcon>
             </el-icon>
             <template #title>
@@ -90,7 +91,10 @@ watchEffect(() => {
 
 const usePath = usePathStore()
 
-const handleSelectMenu = (index: string, indexPath: string[]) => {}
+const handleSelectMenu = (index: string, indexPath: string[]) => {
+  console.log(`1===>`, index, '2===>', indexPath)
+  router.push('/' + indexPath.join(''))
+}
 
 onMounted(() => {})
 </script>

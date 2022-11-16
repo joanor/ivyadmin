@@ -1,3 +1,5 @@
+@use './modules/variables' as *;
+
 html,
 body {
   width: 100%;
@@ -5,6 +7,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: "PingFang SC", "Microsoft JhengHei", "Microsoft YaHei", CiscoSans, Arial, sans-serif;
+  color: $c-text-5;
 }
 
 div,
@@ -20,3 +23,5 @@ a {
 div {
   box-sizing: border-box;
 }
+
+/*===============================================================*/
