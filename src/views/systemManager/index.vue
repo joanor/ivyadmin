@@ -1,6 +1,5 @@
 <template>
   <div class="bg-white w-full h-full p-5 flex flex-col">
-    <!-- <el-button @click="changeTT"></el-button> -->
     <SearchContainer :mode="mode" :height="height" @search="fetchTableList">
       <el-form :model="searchForm" label-width="100px" class="searchForm">
         <el-row :gutter="20">

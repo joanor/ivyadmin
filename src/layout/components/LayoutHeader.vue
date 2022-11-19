@@ -32,7 +32,7 @@
       <div class="flex items-center">
         <el-dropdown
           trigger="click"
-          popper-class="notice"
+          popper-class="caution"
           :hide-on-click="false"
           placement="bottom-end"
         >
@@ -93,10 +93,6 @@ defineProps({
 })
 
 const input2 = ref('')
-
-const jumpTo = () => {
-  router.push('/app-vite2:page*')
-}
 
 const handleCommand = (e: string | number | object) => {
   console.log('点击了 ', e)

@@ -42,7 +42,7 @@ export default ({ command, mode }: ConfigEnv): UserConfig => {
     css: {
       preprocessorOptions: {
         scss: {
-          additionalData: `@import './src/styles/var.scss';`,
+          additionalData: `@use './src/styles/modules/index.scss' as *;`,
         },
       },
     },

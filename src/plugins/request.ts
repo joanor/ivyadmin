@@ -1,7 +1,8 @@
-import { checkStatus, createAxios, ResultEnum, Result } from 'ivy2'
+import { checkStatus, createAxios, ResultEnum } from 'ivy2'
 import 'element-plus/es/components/message/style/css'
 import { ElMessage } from 'element-plus'
 import store from 'store2'
+import { Result } from '@/api/model'
 
 export const http = createAxios({
   baseURL:
@@ -23,8 +24,8 @@ export const http = createAxios({
       if (!response.data) throw new Error('请求出错，请稍后重试')
       const result = response.data as unknown as Result
       const { code, message } = result
-      const hasSuccess = code === ResultEnum.SUCCESS
-      if (hasSuccess) return result.data ?? ''
+      const hasSuccess = [ResultEnum.SUCCESS, '200', 0, '0'].indexOf(code) > -1
+      if (hasSuccess) return result.result ?? ''
       else {
         const [errMessage] = checkStatus(code, message)
         ElMessage.error(errMessage)

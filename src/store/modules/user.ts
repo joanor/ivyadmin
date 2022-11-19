@@ -41,8 +41,10 @@ export const useUserStore = defineStore('user', {
             // data,
           })
           .then(res => {
-            console.log(`1234567890`)
-            // store.set(SYS_CONSTANT.AUTH_TOKEN, res.token)
+            store.set(
+              SYS_CONSTANT.AUTH_TOKEN,
+              'bd593d99e47f4943adbeabb9b8ccc9f1'
+            )
             resolve(true)
           })
           .catch(err => {

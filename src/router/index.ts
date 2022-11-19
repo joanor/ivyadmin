@@ -6,6 +6,7 @@ import { normalRoutes, WHITE_NAME_LIST } from './routes'
 
 export const routes: AppRouteRecordRaw[] = [
   ...normalRoutes,
+<<<<<<< HEAD
   // {
   //   component: () => import('@/layout/default.vue'),
   //   path: '/',
@@ -108,6 +109,33 @@ export const routes: AppRouteRecordRaw[] = [
   //     },
   //   ],
   // },
+=======
+  {
+    component: () => import('@/layout/default.vue'),
+    path: '/',
+    redirect: '/dashboard',
+    children: [
+      {
+        name: 'dashboard',
+        path: '/dashboard/:page*',
+        component: () => import('@/views/ivyadmin/home.vue'),
+        meta: {
+          title: '控制台',
+          icon: 'example',
+        },
+      },
+      {
+        name: 'analysis',
+        path: '/analysis/:page*',
+        component: () => import('@/views/ivyadmin/analysis.vue'),
+        meta: {
+          title: '控制台',
+          icon: 'example',
+        },
+      },
+    ],
+  },
+>>>>>>> 462db1f3b135d0eecfe449df32d330f94189b5e0
 ]
 
 export const router = createRouter({
