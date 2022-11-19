@@ -10,14 +10,11 @@ declare module '@vue/runtime-core' {
     BoxContainer: typeof import('./src/components/BoxContainer.vue')['default']
     ButtonList: typeof import('./src/components/ButtonList.vue')['default']
     Card: typeof import('./src/components/Card.vue')['default']
-<<<<<<< HEAD
-=======
     DigitalFlop: typeof import('./src/components/DigitalFlop.vue')['default']
     ElBacktop: typeof import('element-plus/es')['ElBacktop']
     ElBadge: typeof import('element-plus/es')['ElBadge']
     ElBreadcrumb: typeof import('element-plus/es')['ElBreadcrumb']
     ElBreadcrumbItem: typeof import('element-plus/es')['ElBreadcrumbItem']
->>>>>>> 462db1f3b135d0eecfe449df32d330f94189b5e0
     ElButton: typeof import('element-plus/es')['ElButton']
     ElCheckbox: typeof import('element-plus/es')['ElCheckbox']
     ElCol: typeof import('element-plus/es')['ElCol']
