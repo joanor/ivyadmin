@@ -37,11 +37,6 @@ declare module '@vue/runtime-core' {
     ElTag: typeof import('element-plus/es')['ElTag']
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
-<<<<<<< HEAD
-    Pagination: typeof import('./src/components/Pagination.vue')['default']
-    RouterLink: typeof import('vue-router')['RouterLink']
-    RouterView: typeof import('vue-router')['RouterView']
-=======
     IAntDesignQuestionCircleOutlined: typeof import('~icons/ant-design/question-circle-outlined')['default']
     IEpBell: typeof import('~icons/ep/bell')['default']
     IEpExpand: typeof import('~icons/ep/expand')['default']
@@ -53,14 +48,10 @@ declare module '@vue/runtime-core' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     RowNotice: typeof import('./src/components/RowNotice.vue')['default']
->>>>>>> 462db1f3b135d0eecfe449df32d330f94189b5e0
     SearchButton: typeof import('./src/components/SearchButton.vue')['default']
     SearchContainer: typeof import('./src/components/SearchContainer.vue')['default']
     SvgIcon: typeof import('./src/components/SvgIcon.vue')['default']
     Table: typeof import('./src/components/Table.vue')['default']
-<<<<<<< HEAD
-=======
     TextEllipsis: typeof import('./src/components/TextEllipsis.vue')['default']
->>>>>>> 462db1f3b135d0eecfe449df32d330f94189b5e0
   }
 }
