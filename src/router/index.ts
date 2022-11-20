@@ -22,8 +22,17 @@ export const routes: AppRouteRecordRaw[] = [
       },
       {
         name: 'analysis',
-        path: '/analysis/:page*',
+        path: '/analysis/home',
         component: () => import('@/views/ivyadmin/analysis.vue'),
+        meta: {
+          title: '控制台',
+          icon: 'example',
+        },
+      },
+      {
+        name: 'canvas',
+        path: '/analysis/canvas',
+        component: () => import('@/views/ivyadmin/canvas.vue'),
         meta: {
           title: '控制台',
           icon: 'example',

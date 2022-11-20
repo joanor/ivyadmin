@@ -16,7 +16,7 @@ import LayoutBreadCrumb from './LayoutBreadCrumb.vue'
 <style lang="scss" scoped>
 .app-container {
   height: calc(100vh - 60px);
-  padding: 17px 20px 22px;
+  padding: 17px 20px 20px;
 
   &-box {
     height: 100%;
