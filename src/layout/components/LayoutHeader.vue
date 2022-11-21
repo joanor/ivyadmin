@@ -3,8 +3,8 @@
     <div class="flex items-center">
       <!-- <SvgIcon name="sc" size="32"></SvgIcon> -->
       <!-- <div class="banner"></div> -->
-      <img src="/gs_banner.png" alt="" class="banner mr-2" width="260" />
-      <span class="ml-4 sc-project-title">{{ title }}</span>
+      <img src="/sc.svg" alt="" class="banner mr-2" />
+      <span class="ml-2 sc-project-title">{{ title }}</span>
     </div>
     <!-- <el-button type="primary" size="default" @click="jumpTo">跳转</el-button> -->
 
