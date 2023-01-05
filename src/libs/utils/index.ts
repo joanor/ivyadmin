@@ -1,3 +1,7 @@
+import { cloneDeep } from 'ivy2'
+import { utils, WorkBook, write } from 'xlsx'
+import { ResultColumnsData } from '@/api/model'
+
 // const files=import.meta.glob('./*.ts',{eager:true})
 export const autoImport = (files: Record<string, unknown>) => {
   const modules: Recordable = {}
@@ -15,33 +19,33 @@ export const downloadTemplate = (type: string) => {
   )
 }
 
-export const downloadExcel = async (
-  total: number,
-  tableHeaders: ResultColumnsData[],
-  aUrl: URLType = 'orginformation'
-) => {
-  const { result } = await getList(
-    {
-      page: {
-        current: 1,
-        size: total,
-      },
-    },
-    aUrl
-  )
-  console.log(`我看下=====>`, result)
-  let sheet1 = utils.json_to_sheet(result.records)
-  let jsonSheet1 = JSON.stringify(sheet1)
-  tableHeaders.forEach(v => {
-    // 这一步是将英文转成中文
-    jsonSheet1 = jsonSheet1.replace(v.name, v.title)
-  })
-  sheet1 = JSON.parse(jsonSheet1)
-  const wb = utils.book_new()
-  utils.book_append_sheet(wb, sheet1, 'sheet1')
-  const workbookBlob = workbook2blob(wb)
-  download(workbookBlob, '计量表统计.xlsx')
-}
+// export const downloadExcel = async (
+//   total: number,
+//   tableHeaders: ResultColumnsData[],
+//   aUrl: URLType = 'orginformation'
+// ) => {
+//   const { result } = await getList(
+//     {
+//       page: {
+//         current: 1,
+//         size: total,
+//       },
+//     },
+//     aUrl
+//   )
+//   console.log(`我看下=====>`, result)
+//   let sheet1 = utils.json_to_sheet(result.records)
+//   let jsonSheet1 = JSON.stringify(sheet1)
+//   tableHeaders.forEach(v => {
+//     // 这一步是将英文转成中文
+//     jsonSheet1 = jsonSheet1.replace(v.name, v.title)
+//   })
+//   sheet1 = JSON.parse(jsonSheet1)
+//   const wb = utils.book_new()
+//   utils.book_append_sheet(wb, sheet1, 'sheet1')
+//   const workbookBlob = workbook2blob(wb)
+//   download(workbookBlob, '计量表统计.xlsx')
+// }
 
 const workbook2blob = (workbook: WorkBook) => {
   const wbout = write(workbook, {
@@ -146,4 +150,23 @@ export const arrayChangeToObj = (d: Recordable[], key: string) => {
     acc[cur[key]] = cur
     return acc
   }, {})
+}
+
+export const textSize = (text: string, fontSize = '') => {
+  const span = document.createElement('span')
+  const result = {
+    width: span.offsetWidth,
+    height: span.offsetHeight,
+  }
+  span.style.visibility = 'hidden'
+  span.style.fontSize = fontSize || '14px'
+  document.body.appendChild(span)
+
+  if (typeof span.textContent != 'undefined') span.textContent = text || ''
+  else span.innerText = text || ''
+
+  result.width = span.offsetWidth - result.width
+  result.height = span.offsetHeight - result.height
+  span.parentNode && span.parentNode.removeChild(span)
+  return result
 }

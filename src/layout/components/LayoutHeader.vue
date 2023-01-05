@@ -1,13 +1,9 @@
 <template>
   <div class="app-header flex items-center justify-between p-4">
     <div class="flex items-center">
-      <!-- <SvgIcon name="sc" size="32"></SvgIcon> -->
-      <!-- <div class="banner"></div> -->
       <img src="/sc.svg" alt="" class="banner mr-2" />
       <span class="ml-2 sc-project-title">{{ title }}</span>
     </div>
-    <!-- <el-button type="primary" size="default" @click="jumpTo">跳转</el-button> -->
-
     <div class="flex items-center">
       <div class="flex items-center">
         <span class="qjsx mr-1 w-24">全局筛选</span>
@@ -118,7 +114,6 @@ const handleCommand = (e: string | number | object) => {
 
   .sc-project-title {
     font-size: 20px;
-    font-family: PingFang SC, PingFang SC-Medium;
     font-weight: 600;
     text-align: LEFT;
     color: #1d2129;
@@ -129,7 +124,6 @@ const handleCommand = (e: string | number | object) => {
     // width: 100px;
     height: 22px;
     font-size: 14px;
-    font-family: PingFang SC, PingFang SC-Regular;
     font-weight: 400;
     text-align: center;
     color: #4e5969;

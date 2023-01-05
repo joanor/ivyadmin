@@ -1,6 +1,8 @@
 import { formChecker, BaseStructs } from 'ivy2'
 
-const createFormAndRule: () => BaseStructs = () => [
+export const createFormAndRule: (args?: BaseStructs) => BaseStructs = (
+  args = []
+) => [
   {
     label: 'loginName',
     default: '',
@@ -31,6 +33,7 @@ const createFormAndRule: () => BaseStructs = () => [
     ],
     id: '',
   },
+  ...args,
 ]
 
 export const formAndRule = createFormAndRule()

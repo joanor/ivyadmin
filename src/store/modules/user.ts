@@ -1,7 +1,7 @@
 import { http } from '@/plugins/request'
 import { defineStore } from 'pinia'
 import store from 'store2'
-import { SYS_CONSTANT } from '@/libs/constant'
+import { SYS_CONSTANT } from '@/libs/shared/constant'
 
 export interface LoginForm {
   loginName: string

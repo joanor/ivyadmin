@@ -6,6 +6,7 @@ export function setupStyles() {
   autoImport(
     import.meta.glob(['./**/*', '!./modules/**/*'], {
       eager: true,
+      query: '?inline',
     })
   )
 }

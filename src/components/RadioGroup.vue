@@ -11,7 +11,7 @@
       ></el-date-picker>
     </transition>
 
-    <el-radio-group class="mimesis" v-model="activeTab" @change="handleChange">
+    <el-radio-group class="mimesis" v-model="data.localActiveTab" @change="handleChange">
       <el-radio-button
         v-for="item in data"
         :key="item"
@@ -26,8 +26,12 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref,reactive,watch } from 'vue'
 const time = ref('')
+const data = reactive({
+  time: '',
+  localActiveTab:''
+})
 
 const props = withDefaults(
   defineProps<{
@@ -40,7 +44,10 @@ const props = withDefaults(
   }
 )
 
-// const emit = defineEmits(['innerText'])/
+watch(()=>props.activeTab,(newValue) => {
+  data.localActiveTab=newValue
+})
+
 const emit = defineEmits<{
   (e: 'innerText', value: string): void
 }>()

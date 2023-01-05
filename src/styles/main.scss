@@ -1,5 +1,11 @@
 @use './modules/variables' as *;
 
+micro-app,
+micro-app-body {
+  width: 100%;
+  height: 100%;
+}
+
 html,
 body {
   width: 100%;
@@ -41,4 +47,14 @@ li {
 
 a {
   text-decoration: none;
+}
+
+#app_user_overview,
+#app_template_demo_vite,
+#app_data_manager,
+#app_device_manager,
+#app_system_manager {
+  min-height: 100%;
+  position: relative;
+  height: 100%;
 }

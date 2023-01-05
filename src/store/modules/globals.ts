@@ -1,26 +1,16 @@
-import { http } from '@/plugins/request'
 import { defineStore } from 'pinia'
-
-export {}
+import { DICT_FIELDS } from '@/libs/shared/constant'
+import { DictType } from '@/libs/shared/types'
 
 export const useGlobalStore = defineStore('globals', {
-  state: () => ({}),
+  state: () => ({
+    tloading: false,
+    dicts: {} as DictType,
+  }),
   getters: {},
   actions: {
-    getServerTime() {
-      http
-        .get(
-          {
-            url: 'api/date',
-          },
-          {
-            joinPrefix: true,
-            urlPrefix: `${window.config.basic_url}`,
-          }
-        )
-        .then(res => {
-          console.log(`getServerTime=>`, res)
-        })
+    toggleTableLoading() {
+      this.tloading = !this.tloading
     },
   },
 })

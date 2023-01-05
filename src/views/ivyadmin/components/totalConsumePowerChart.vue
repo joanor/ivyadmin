@@ -49,6 +49,9 @@ onMounted(() => {
       yAxis: {
         type: 'value',
         show: false,
+        max: 5500,
+        min: 2000,
+        interval: 1000,
       },
       series: [
         {
@@ -67,10 +70,10 @@ onMounted(() => {
           type: 'line',
           smooth: true,
           symbol: 'none',
-          stack: 'one',
+          stack: 'two',
           lineStyle: {
-            type: 'dashed',
-            dashOffset: 3,
+            type: [2, 6],
+            // dashOffset: 3,
             width: 2,
             cap: 'round',
           },

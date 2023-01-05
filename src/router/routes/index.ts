@@ -11,13 +11,6 @@ export const normalRoutes: AppRouteRecordRaw[] = [
     meta: {
       title: '登录页面',
     },
-    children: [
-      {
-        path: 'one',
-        name: 'One',
-        component: () => import('@/views/login/one.vue'),
-      },
-    ],
   },
   {
     path: '/errorPage',

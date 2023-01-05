@@ -1,263 +1,284 @@
 /**
  * 与表单相关的操作
- * 包括重置表单，编辑表单时赋值等操作
  */
 
-import { BaseStruct, generateFormAndRules, isString } from 'ivy2'
+import { BaseStruct, generateFormAndRules, isString, _console } from 'ivy2'
 import type { RuleItem } from 'async-validator'
-import { ref, reactive, toRefs, Ref, watch, unref, isRef } from 'vue'
+import {
+  ref,
+  reactive,
+  toRefs,
+  Ref,
+  nextTick,
+  watchEffect,
+  UnwrapRef,
+} from 'vue'
 import { FormInstance } from 'element-plus'
 import { createFormAndRule } from '@/libs/formAndRules/records'
 import { resetForm } from '@/libs/formAndRules/form'
-import { ResultColumnsData } from '@/libs/model'
+import { ResultColumnsData } from '@/api/model'
 import { useGlobalStore } from '@/store'
-import { ModelType, DictFieldType } from '../common'
+import { FormPropRule } from '@/libs/shared/types'
 
 interface RuleItemExtend extends RuleItem {
   trigger: string
 }
 
-interface SelectOption {
-  codeId: string
-  codeType?: string
-  name: string
-  value: string
-}
-
-interface FormColumns extends ResultColumnsData {
-  selectOptions: SelectOption[]
-  formItemType: string | DictFieldType | undefined
-}
-
-// 控制那些表单字段需要在页面展示和是否需要在form对象中保留
-interface BlackListField {
-  field: string // 接口返回的columns中无需在页面展示的字段
-  beIn: boolean //  表示仍需要在form表单中出现的字段（但可以不出现在页面中）
-}
-
-/**
- * 需要进行form表单校验的字段（默认）
- * 数组第一个元素表示提示语;
- * 数组第二个元素表示触发条件,不填的话默认为'blur'(说明表单元素为input,不需要选择)
- * 数组第三个元素表示字典接口中返回的字段名称
- *
- * 如果只有第一个元素，没有第二和第三个元素，表示是input
- * 如果第一、第二个和第三个元素同时存在，说明是select，并且可以从字典接口中获取选项
- * 如果只有第一和第二个元素，但没有第三个元素，说明是date或者没有字典的select
- * 
- * @example
- * 
- * const formInRuleProps = {
-     name: ['请输入代码值的名称'],
-     commAddress: ['请输入通信地址'],
-     commMode: ['请选择通信方式', 'change', 'COMM_MODE'],
-     protocolType: ['请输入资产编号', 'change', 'PROTOCOL_TYPE'],
-     phaseLine: ['请选择相线', 'change', 'PHASE_LINE'],
-     baudrate: ['请选择波特率', 'change', 'BAUDRATE'],
-     state: ['请选择设备状态', 'change', 'METER_STATE'],
-     equipType: [
-       '请选择设备类型',
-       'change',
-       {
-         water: 'WATER_METER_TYPE',
-         gas: 'GAS_METER_TYPE',
-       },
-     ],
-   }
- * 
- */
-export const formInRuleProps: Record<string, (string | DictFieldType)[]> = {
-  orgName: ['请输入企业名称'],
-  orgType: ['请输入企业类型'],
-  employees: ['请输入企业员工人数'],
-  area: ['请输入企业占地面积'],
-  orgAddr: ['请输入企业地址'],
-}
-
-/**
- * 无需进行form表单校验的字段（默认）
- * 数组第一个元素表示元素类型
- * 数组第二个元素表示从字典中获取的select选项值，如果没有第二个元素，表示是用户自定义的选项（通过userSelectOptions参数）
- */
-export const formNotRuleProps: Record<string, (string | DictFieldType)[]> = {
-  validFlag: ['select'],
-}
-
 // 拿到字典，通过字典获取select选项的值
 const useGlobal = useGlobalStore()
 
+interface HookOption {
+  expectOrderPropNames?: string[] // 期待的表单字段排序
+  expectOmitedColumnNames?: string[] // 期待忽略的column字段
+  expectPickedColumnNames?: string[] // 期待存在的表单字段
+  customDictionary?: {
+    [x: string]: Recordable[]
+  } // 用户自定义的字典（当接口没有返回的时候，自定义的字典，用于select选项）
+}
+
 /**
- * @param formPropList
- * @param blacklistProps 接口返回的columns中，不需要出现在页面中的字段列表
- * @param userSelectOptions 用户自定义的select选项（而不是从字典中获取）
- * @param aformInRulePropList 用户自定义的需要校验的表单字段
- * @param aformNotRulePropList 用户自定义的不需要校验的表单字段
- * @param model 有的时候表单字段相同，但是select选项却不相同。通过model来进行区分。
+ * 通过传入接口返回的columns，或者用户自己传入的字符串数组，来生成展示的表单字段
+ * 可能存在的主要问题：
+ * 1、接口返回的字段有一些是我们不需要的
+ * 解决方法：通过字段hidden和传入自定义expectOmitedPropNames或expectPickedPropNames字段来进行过滤
+ * 2、页面展示的表单字段和实际提交时的表单字段不一致。（因为页面form表单是自动生成的，所以存在此问题，）
+ * 解决方法：先生成我们提交表单时的表单结构字段，然后再通过hidden和传入自定义expectOmitedPropNames或expectPickedPropNames来生成页面展示的字段列表
+ * @param myFormProps 表单字段名称组成的字符串数组
+ * @param columns 由接口返回
+ * @param option
  * @returns
- *
- * @example
- *
  */
-export default function (
-  formPropList: Ref<ResultColumnsData[]> | string[], // 这里的ResultColumnsData由接口的返回来确定，一个项目中肯定是保持一致的
-  blacklistProps: BlackListField[] = [],
-  userSelectOptions: {
-    [x: string]: SelectOption[]
-  } = {},
-  aformInRulePropList: Record<string, (string | DictFieldType)[]> = {},
-  aformNotRulePropList: Record<string, (string | DictFieldType)[]> = {},
-  model: ModelType = 'water'
+export default function <FormStruct>(
+  myFormProps: (FormPropRule<string> | string)[],
+  columns?: Ref<ResultColumnsData[]>,
+  option: HookOption = {}
 ) {
-  const formInRulePropList = {
-    ...formInRuleProps,
-    ...aformInRulePropList,
+  const initialHookOption = {
+    expectOrderPropNames: [] as [],
+    expectOmitedColumnNames: [] as string[],
+    expectPickedColumnNames: [] as string[],
+    customDictionary: {} as {
+      [x: string]: Recordable[]
+    },
+    ...option,
   }
 
-  const formNotRulePropList = {
-    ...formNotRuleProps,
-    ...aformNotRulePropList,
+  const {
+    expectOrderPropNames,
+    expectOmitedColumnNames,
+    expectPickedColumnNames,
+    customDictionary,
+  } = initialHookOption
+
+  const dictionary: Recordable = {
+    ...useGlobal.dicts,
   }
 
-  const formRef = ref<FormInstance>() as Ref<FormInstance> // 表单ref
-  const data = reactive({
-    form: {} as Record<string, any>,
-    rules: {} as Record<string, any>,
-    formColumns: [] as FormColumns[], // 由于接口返回的columns和表单要展示的字段不完全一致，所以这里定义了新的变量formColumns用于保存form要展示的字段
+  // 将用户传入的myFormProps转成FormPropRule[]类型
+  const myHandledFormProps = myFormProps.map(v => {
+    if (isString(v)) {
+      return {
+        name: v,
+      }
+    } else {
+      return v
+    }
   })
 
-  let blackList: string[] = []
-  let props: string[] = []
+  // 获取表单的全部字段
+  const myFormPropNames = myHandledFormProps.map(v => v.name)
+
+  // 获取需要校验的表单字段名称组成的数组
+  const expectRequiredPropNames = myHandledFormProps
+    .filter(v => v.required)
+    .map(v => v.name)
+
+  // 表单涉及的数据
+  const formRef = ref<FormInstance>() as Ref<FormInstance> // 表单ref
+  const data = reactive({
+    form: {} as FormStruct,
+    rules: {} as Recordable,
+    formColumns: [] as ResultColumnsData[], // 由于接口返回的columns和表单要展示的字段不完全一致，所以这里定义了新的变量formColumns用于保存页面中form要展示的字段
+  })
+
   let attaches: BaseStruct<string, boolean>[] = []
+  let pageShowFormColumnNames: string[] = []
+  let pageOmitedFormColumnNames: string[] = []
 
-  blackList = blacklistProps.map(v => v.field)
+  // 接口返回列表，自动生成表单结构和校验规则
+  if (columns) {
+    const unwatch = watchEffect(() => {
+      // 若接口没有返回值，则直接返回
+      if (columns.value.length === 0) return
 
-  // 用于自动生成表单结构和校验规则
-  if (isRef(formPropList)) {
-    // 接口返回结构
-    watch(formPropList, newValue => {
-      // 将黑名单中的字段过滤掉，剩下的都是可以用于表单在页面展示的字段
-      const formPropList = unref(newValue).filter(
-        column => blackList.indexOf(column.name) === -1
+      /**
+       * 以下从第1步到第4步，生成的是页面中展示的表单字段（跟提交时的表单字段可能会有区别：比如id字段，不需要在页面中出现，但是编辑提交时需要带上）
+       */
+
+      // 1、重新排序并过滤不需要出现在页面中的form字段
+      const orderedColumnNames = Array.from(
+        new Set([...expectOrderPropNames, ...myFormPropNames])
+      ).filter(
+        columnName =>
+          expectPickedColumnNames.indexOf(columnName) > -1 ||
+          expectOmitedColumnNames.indexOf(columnName) === -1
       )
 
-      // 自定义内部方法
-      const setFormItemType = (propName: string) => {
-        if (Object.keys(formInRulePropList).indexOf(propName) > -1) {
-          // 需要校验的表单字段
-          if (!formInRulePropList[propName][1]) {
-            return 'input'
-          } else if (formInRulePropList[propName][1] === 'change') {
-            return 'select'
-          }
-        } else if (Object.keys(formNotRulePropList).indexOf(propName) > -1) {
-          // 不需要校验的表单字段
-          return formNotRulePropList[propName][0]
-        } else {
-          // 默认是input
-          return 'input'
-        }
-      }
-      // 生成formColumns（select的选项可能是字典返回的，也可能是用户自己写的，又或者需要规则校验的，也有可能不需要规则校验）
-      data.formColumns = formPropList.map(item => {
-        let tmpProp = ''
-        if (
-          Object.keys(formInRulePropList).indexOf(item.name) > -1 &&
-          formInRulePropList[item.name][2]
-        ) {
-          // 需要校验的字段，同时取字典返回数据
-          const tmp = formInRulePropList[item.name][2]
-          isString(tmp) ? (tmpProp = tmp) : (tmpProp = tmp[model])
-        } else if (
-          Object.keys(formNotRulePropList).indexOf(item.name) > -1 &&
-          formNotRulePropList[item.name][1]
-        ) {
-          // 不需要校验的字段，同时取字典返回
-          const tmp = formNotRulePropList[item.name][1]
-          isString(tmp) ? (tmpProp = tmp) : (tmpProp = tmp[model])
-        } else {
-          // 用户自己定义select options
-          tmpProp = item.name
-        }
+      // 2、生成表单字段的对象数组(ResultColumnsData[]类型)
+      const orderedColumns = orderedColumnNames
+        .map<ResultColumnsData | undefined>(columnName => {
+          return columns.value.find(column => column.name === columnName)
+        })
+        .filter(v => v) as ResultColumnsData[]
 
-        return {
-          ...item,
-          selectOptions: tmpProp
-            ? useGlobal.dicts[tmpProp] || userSelectOptions[tmpProp]
-            : [],
-          formItemType: setFormItemType(item.name),
+      // 3、设置表单字段的trigger、selectOption、message、component属性
+      orderedColumns.forEach(column => {
+        const tmp = myHandledFormProps.filter(v => v.name === column.name)[0]
+        if (tmp) {
+          if (!column.trigger) {
+            // 不存在column.trigger，说明不是接口返回的字典字段
+            column.trigger = tmp.trigger || 'blur'
+            column.selectOption = tmp.dictname
+              ? dictionary[tmp.dictname] || []
+              : customDictionary[column.name] || []
+            column.message = tmp.message || `请输入${column.title}`
+            column.component = tmp.component || 'input'
+          } else {
+            // 若已经存在column.trigger，说明接口返回时已经确定的，是字典字段。属于select类型，trigger为change
+            // _console.error(`${column.name}存在默认的trigger`)
+          }
         }
       })
 
-      // 生成自定义校验规则
-      props = formPropList.map(column => column.name)
-      attaches = unref(newValue).map(column => ({
-        label: column.name,
-        default: '',
-        required: Object.keys(formInRulePropList).indexOf(column.name) > -1,
-        rule: [
-          {
-            required: Object.keys(formInRulePropList).indexOf(column.name) > -1,
-            message: formInRulePropList[column.name]
-              ? formInRulePropList[column.name][0] ?? ''
-              : '',
-            trigger: formInRulePropList[column.name]
-              ? formInRulePropList[column.name][1] ?? 'blur'
-              : '',
-          },
-        ] as RuleItemExtend[],
-        id: '',
-      }))
+      // 4、赋值给表示页面展示的表单字段的变量
+      data.formColumns = orderedColumns
+
+      // 获取最终在页面展示的表单字段字符串数组
+      pageShowFormColumnNames = orderedColumns.map(v => v.name)
+
+      // 那么不在页面中展示的表单字段就是最终被忽略的字段（不能直接使用expectOmitedColumnNames，因为还有expectPickedColumnNames的存在）
+      pageOmitedFormColumnNames = myFormPropNames.filter(
+        v => pageShowFormColumnNames.indexOf(v) === -1
+      )
+
+      // 用于生成表单和校验规则
+      attaches = columns.value
+        .filter(v => myFormPropNames.indexOf(v.name) > -1)
+        .map(column => {
+          let validatorObj: RuleItemExtend = {} as RuleItemExtend
+          if (expectRequiredPropNames.some(v => v === column.name)) {
+            if (column.validator) {
+              validatorObj = {
+                trigger: column.trigger ?? 'blur',
+                validator: column.validator,
+              }
+            }
+          }
+          return {
+            label: column.name,
+            default: '',
+            required: expectRequiredPropNames.some(v => v === column.name),
+            rule: [
+              {
+                required: expectRequiredPropNames.some(v => v === column.name),
+                message: column.message ?? '',
+                trigger: column.trigger ?? 'blur',
+              },
+              validatorObj,
+            ] as RuleItemExtend[],
+            id: '',
+          }
+        })
 
       // 生成最终的表单和校验规则
       const [_form, _rules] = generateFormAndRules(
-        [...props],
+        [...myFormPropNames],
         createFormAndRule([...attaches])
       )
-      data.form = _form
+      data.form = _form as UnwrapRef<FormStruct>
       data.rules = _rules
+      // 取消监听
+      unwatch()
     })
   } else {
-    props = formPropList.filter(column => blackList.indexOf(column) === -1)
-    attaches = props.map(column => ({
-      label: column,
-      default: '',
-      required: false,
-      rule: [],
-      id: '',
-    }))
+    // 用于生成表单和校验规则
+    attaches = myHandledFormProps.map(myProp => {
+      let validatorObj: RuleItemExtend = {} as RuleItemExtend
+      if (expectRequiredPropNames.some(v => v === myProp.name)) {
+        if (myProp.validator) {
+          validatorObj = {
+            trigger: myProp.trigger ?? 'blur',
+            validator: myProp.validator,
+          }
+        }
+      }
+      return {
+        label: myProp.name,
+        default: '',
+        required: expectRequiredPropNames.some(v => v === myProp.name),
+        rule: [
+          {
+            required: expectRequiredPropNames.some(v => v === myProp.name),
+            message: myProp.message ?? '',
+            trigger: myProp.trigger ?? 'blur',
+          },
+          validatorObj,
+        ] as RuleItemExtend[],
+        id: '',
+      }
+    })
     const [_form, _rules] = generateFormAndRules(
-      [...props],
+      [...myFormPropNames],
       createFormAndRule([...attaches])
     )
-    data.form = _form
+    data.form = _form as UnwrapRef<FormStruct>
     data.rules = _rules
   }
 
   // 重置表单
   const onResetForm = resetForm(() => {
-    console.log(`重置表单`)
+    // 因为重置表单只能重置页面中展示的字段，而不在页面中展示的字段，没有办法通过resetFields来重置，所以这里人工设置一下
+    pageOmitedFormColumnNames.forEach(v => {
+      const t = attaches.find(v2 => v2.label === v)
+      ;(data.form as Recordable)[v] = t ? t.default : ''
+    })
   })
 
-  // 编辑表单赋值
-  const onEditForm = (obj: Recordable, ...inNeedProps: string[]) => {
+  // 当表单数据回显的时候
+  const onEchoForm = (obj: Recordable) => {
     // 保存编辑表单需要传入id
-    for (const prop of Object.keys(obj)) {
-      if (
-        blackList.indexOf(prop) === -1 ||
-        [
-          ...blacklistProps.filter(v => v.beIn).map(v => v.field),
-          ...inNeedProps,
-        ].indexOf(prop) > -1
-      ) {
-        data.form[prop] = obj[prop]
+    nextTick(() => {
+      // 必须要放在nextTick中执行，否则如果一开始就会给表单赋初值，当重置表单的时候就不对了
+      for (const prop of Object.keys(data.form as Recordable)) {
+        ;(data.form as Recordable)[prop] = obj[prop]
       }
-    }
+    })
   }
 
   return {
     ...toRefs(data),
     formRef,
     onResetForm,
-    onEditForm,
+    onEchoForm,
   }
+}
+
+/**
+ * 此方法用于生成表单类型推断
+ * @param configs 
+ * @example
+   import useForm, { defineFormTypes } from '@/hooks/web/useForm'
+   const searchFormProps = defineFormTypes(['companyName', 'address'])
+   const { form: searchForm, formRef: searchFormRef } = useForm<
+     {
+       [P in typeof searchFormProps[number] as P extends string ? P : never]:
+         | string
+         | number
+     } & { [x: string]: string | number }
+   >(searchFormProps)
+ */
+export function defineFormTypes<T extends string>(
+  configs: (FormPropRule<T> | T)[]
+) {
+  return configs
 }

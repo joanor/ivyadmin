@@ -29,6 +29,12 @@ interface ImportMeta {
   readonly env: ImportMetaEnv
 }
 
+type PowerFunc = {
+  easeIn: AnyFunction
+    easeInOut: AnyFunction
+    easeOut: AnyFunction
+}
+
 interface Window {
   NProgress: typeof import('nprogress')
   dayjs: typeof import('dayjs')
@@ -43,32 +49,14 @@ interface Window {
   intervalTimer: NodeJS.Timer
   gsap: typeof import('gsap')
   Flip: typeof import('gsap/Flip').Flip
-  Power0: {
-    easeIn: AnyFunction
-    easeInOut: AnyFunction
+  Power0:PowerFunc & {
+    
     easeNone: AnyFunction
-    easeOut: AnyFunction
   }
-  Power1: {
-    easeIn: AnyFunction
-    easeInOut: AnyFunction
-    easeOut: AnyFunction
-  }
-  Power2: {
-    easeIn: AnyFunction
-    easeInOut: AnyFunction
-    easeOut: AnyFunction
-  }
-  Power3: {
-    easeIn: AnyFunction
-    easeInOut: AnyFunction
-    easeOut: AnyFunction
-  }
-  Power4: {
-    easeIn: AnyFunction
-    easeInOut: AnyFunction
-    easeOut: AnyFunction
-  }
+  Power1: PowerFunc
+  Power2:PowerFunc
+  Power3: PowerFunc
+  Power4: PowerFunc
 }
 
 declare type Recordable<T = any> = Record<string, T>
