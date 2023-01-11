@@ -58,11 +58,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import useLogin from '@/hooks/useLogin'
+import useCommon from '@/hooks/useCommon'
 const checked = ref(false)
 const loading = ref(false)
 
-// 登录功能
 const { loginFormRef, loginForm, loginFormRules, handleLoginForm } = useLogin()
+const { timeSayHello, projectName } = useCommon()
 
 // 背景视频控制
 const controlVideoPlaySpeed = () => {
@@ -70,23 +71,6 @@ const controlVideoPlaySpeed = () => {
   $video.playbackRate = 0.66
 }
 onMounted(controlVideoPlaySpeed)
-
-// 欢迎语句
-const timeSayHello = computed(() => {
-  let date = new Date().getHours()
-  let hoursTip = ''
-  if (date >= 0 && date < 12) {
-    hoursTip = '上午好'
-  } else if (date >= 12 && date < 18) {
-    hoursTip = '下午好'
-  } else {
-    hoursTip = '晚上好'
-  }
-  return hoursTip
-})
-
-// 项目名称
-const projectName = computed(() => `${window.config.projectName}`)
 </script>
 
 <style lang="scss" scoped>
@@ -100,7 +84,6 @@ const projectName = computed(() => `${window.config.projectName}`)
     div {
       height: 28px;
       font-size: 20px;
-      font-family: PingFang SC, PingFang SC-Medium;
       font-weight: 500;
       line-height: 28px;
     }
@@ -124,18 +107,14 @@ const projectName = computed(() => `${window.config.projectName}`)
   .login-title,
   .login-subtitle {
     font-size: 24px;
-    font-family: PingFang SC, PingFang SC-Medium;
     font-weight: 600;
-    color: #1d2129;
     line-height: 32px;
     height: 32px;
   }
 
   .loginform {
     span {
-      font-family: PingFang SC, PingFang SC-Regular;
-      font-weight: 400;
-      color: #165dff;
+      color: $c-primary-6;
     }
   }
 }

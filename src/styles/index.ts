@@ -4,9 +4,9 @@ import { autoImport } from '@/libs/utils'
 
 export function setupStyles() {
   autoImport(
-    import.meta.glob(['./**/*', '!./modules/**/*'], {
+    import.meta.glob(['./main.scss', './**/*', '!./modules/**/*'], {
       eager: true,
-      query: '?inline',
+      // query: '?inline',
     })
   )
 }

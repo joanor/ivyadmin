@@ -68,7 +68,7 @@ const workbook2blob = (workbook: WorkBook) => {
   return blob
 }
 
-const download = (ablob: Blob, fileName: string) => {
+const download = (ablob: any, fileName: string) => {
   let blob = ''
   if (typeof ablob == 'object' && ablob instanceof Blob) {
     blob = URL.createObjectURL(ablob) // 创建blob地址
@@ -150,23 +150,4 @@ export const arrayChangeToObj = (d: Recordable[], key: string) => {
     acc[cur[key]] = cur
     return acc
   }, {})
-}
-
-export const textSize = (text: string, fontSize = '') => {
-  const span = document.createElement('span')
-  const result = {
-    width: span.offsetWidth,
-    height: span.offsetHeight,
-  }
-  span.style.visibility = 'hidden'
-  span.style.fontSize = fontSize || '14px'
-  document.body.appendChild(span)
-
-  if (typeof span.textContent != 'undefined') span.textContent = text || ''
-  else span.innerText = text || ''
-
-  result.width = span.offsetWidth - result.width
-  result.height = span.offsetHeight - result.height
-  span.parentNode && span.parentNode.removeChild(span)
-  return result
 }

@@ -7,7 +7,13 @@ export default function () {
   const userStore = useUserStore()
   const router = useRouter()
 
-  const formProps = defineFormTypes(['loginName', 'password'])
+  const formProps = defineFormTypes([
+    {
+      name: 'loginName',
+      uniqId: '',
+    },
+    'password',
+  ])
   const {
     form: loginForm,
     rules: loginFormRules,

@@ -8,6 +8,7 @@ import {
   generateFormAndRules,
   isString,
   _console,
+  strRandom,
 } from 'ivy2'
 import type { RuleItem } from 'async-validator'
 import {
@@ -111,7 +112,7 @@ export default function <FormStruct>(
   let attaches: BaseStruct<string, boolean>[] = []
   let pageShowFormColumnNames: string[] = []
   let pageOmitedFormColumnNames: string[] = []
-
+  const uniqIds: string[] = []
   if (columns) {
     // 接口返回列表，自动生成表单结构和校验规则
     const unwatch = watchEffect(() => {
@@ -153,9 +154,7 @@ export default function <FormStruct>(
             column.selectOption = tmp.dictname
               ? dictionary[tmp.dictname] || []
               : customDictionary[column.name] || []
-            column.message =
-              tmp.message ||
-              `请${column.trigger === 'blur' ? '输入' : '选择'}${column.title}`
+            column.message = tmp.message || `请输入${column.title}`
             column.component = tmp.component || 'input'
           } else {
             // 若已经存在column.trigger，说明接口返回时已经确定的，是字典字段。属于select类型，trigger为change
@@ -176,6 +175,7 @@ export default function <FormStruct>(
       )
 
       // 用于生成表单和校验规则
+
       attaches = columns.value
         .filter(v => myFormPropNames.indexOf(v.name) > -1)
         .map(column => {
@@ -188,6 +188,8 @@ export default function <FormStruct>(
               }
             }
           }
+          const uniqId = strRandom()
+          uniqIds.push(uniqId)
           return {
             label: column.name,
             default: '',
@@ -200,14 +202,15 @@ export default function <FormStruct>(
               },
               validatorObj,
             ] as RuleItemExtend[],
-            id: '',
+            id: uniqId,
           }
         })
 
       // 生成最终的表单和校验规则
       const [_form, _rules] = generateFormAndRules(
         [...myFormPropNames],
-        createFormAndRule([...attaches])
+        createFormAndRule([...attaches]),
+        uniqIds
       )
       data.originalForm = cloneDeep(_form) as UnwrapRef<FormStruct>
       data.form = _form as UnwrapRef<FormStruct>
@@ -227,6 +230,8 @@ export default function <FormStruct>(
           }
         }
       }
+      const uniqId = strRandom()
+      uniqIds.push(uniqId)
       return {
         label: myProp.name,
         default: '',
@@ -239,12 +244,13 @@ export default function <FormStruct>(
           },
           validatorObj,
         ] as RuleItemExtend[],
-        id: '',
+        id: uniqId,
       }
     })
     const [_form, _rules] = generateFormAndRules(
       [...myFormPropNames],
-      createFormAndRule([...attaches])
+      createFormAndRule([...attaches]),
+      uniqIds
     )
     data.originalForm = cloneDeep(_form) as UnwrapRef<FormStruct>
     data.form = _form as UnwrapRef<FormStruct>

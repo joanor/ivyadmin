@@ -4,6 +4,7 @@ import { DICT_FIELDS } from './constant'
 export interface FormPropRule<T, U = string> {
   name: T
   default?: U // 默认初始值
+  uniqId?: string // 重复表单的标识id，这个字段不能重复
   message?: string
   trigger?: 'blur' | 'change' // 触发方式
   dictname?: string // 字典表中的字段名称，字母全部大写

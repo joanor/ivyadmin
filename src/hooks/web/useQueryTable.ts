@@ -1,13 +1,10 @@
 /**
- * 带分页的table
+ * 带分页的列表
  */
 
-import { reactive, toRefs, UnwrapRef, onMounted, watch, Ref } from 'vue'
-import { RequestOptions } from 'ivy2'
-import { ElMessage } from 'element-plus'
+import { reactive, toRefs, UnwrapRef, onMounted } from 'vue'
+import { RequestOptions, textSize } from 'ivy2'
 import type { Result, ResultColumnsData, ResultPaging } from '@/api/model'
-import { URLType } from '../common'
-import { textSize } from '@/libs/utils'
 import { useGlobalStore } from '@/store'
 
 // 拿到字典，去设置列的selectOption字段
@@ -40,7 +37,7 @@ export default function <
   ) => Promise<Result<ResultPaging<Struct>>>,
   option: HookOption<Struct, QueryParams> = {}
 ) {
-  const initialHookOption = {
+  let initialHookOption = {
     hookQueryParams: {} as QueryParams,
     expectOrderColumnNames: [] as string[], // 期待的列的排序
     expectPickedColumnNames: [] as string[], // 期待存在的列
@@ -53,20 +50,6 @@ export default function <
     baseWidth: 50,
     ...option,
   }
-
-  const {
-    hookQueryParams,
-    expectOrderColumnNames,
-    expectPickedColumnNames,
-    expectOmitedColumnNames,
-    customColumn,
-    lazy,
-    opt,
-    baseWidth,
-  } = initialHookOption
-  /**
-   * 带分页
-   */
 
   const tdata = reactive({
     loading: false, // 是否loading
@@ -86,6 +69,19 @@ export default function <
     queryOpt?: RequestOptions
   ) => {
     tdata.loading = true
+    initialHookOption = {
+      ...initialHookOption,
+      ...hookQuery,
+    }
+    const {
+      hookQueryParams,
+      expectOrderColumnNames,
+      expectPickedColumnNames,
+      expectOmitedColumnNames,
+      customColumn,
+      opt,
+      baseWidth,
+    } = initialHookOption
     try {
       const { result, columns } = await requestPromiseFunc(
         {
@@ -95,7 +91,6 @@ export default function <
           },
           ...hookQueryParams, // 调用hooks时候传递的参数
           ...data, // 调用fetchTableList时传递的参数（可以覆盖上面调用hooks时候传递的参数）
-          ...hookQuery,
         },
         {
           ...opt, // 调用hooks时候传递的RequestOptions
@@ -108,19 +103,19 @@ export default function <
         .tableData[0] as unknown as UnwrapRef<Struct>
 
       if (columns) {
-        // 设置字典字段的选项
+        // 对整个columns的元素设置字典字段的选项
         columns.forEach(v => {
-          const r = v.notes?.match(/[A-Z](_*[A-Z]*)+[A-Z]/g)
+          const r = v.notes?.match(/[A-Z](_*[A-Z]*)+[A-Z]/g) // 匹配字典的名称
           if (r) {
             v.dictName = r[r.length - 1]
-            v.selectOption = useGlobal.dicts[r[r.length - 1]]
+            v.selectOption = useGlobal.dicts[v.dictName]
             if (v.selectOption) {
               v.trigger = 'change'
               v.component = 'select'
               v.message = `请选择${v.title}`
             }
           } else {
-            v.dictName = v.name.toUpperCase()
+            v.dictName = v.name.toUpperCase() // 转成大写字符串
           }
         })
 
@@ -141,19 +136,18 @@ export default function <
         })
 
         // 4、重新排序并过滤需要忽略的列
-        const tmpOrderedColumnNames = Array.from(
+        const orderedColumnNames = Array.from(
           new Set([...expectOrderColumnNames, ...column2Names])
         )
 
-        // let orderedColumnNames: string[] = []
-        const orderedColumnNames =
-          expectPickedColumnNames.length > 0
-            ? tmpOrderedColumnNames.filter(
-                columnName => expectPickedColumnNames.indexOf(columnName) > -1
-              )
-            : tmpOrderedColumnNames.filter(
-                columnName => expectOmitedColumnNames.indexOf(columnName) === -1
-              )
+        expectOmitedColumnNames.forEach(columnName => {
+          if (expectPickedColumnNames.indexOf(columnName) === -1) {
+            const tmpIndex = orderedColumnNames.indexOf(columnName)
+            if (tmpIndex > -1) {
+              orderedColumnNames.splice(tmpIndex, 1)
+            }
+          }
+        })
 
         // 生成排序并过滤过的列的对象数组
         const orderedColumns = orderedColumnNames
@@ -211,7 +205,7 @@ export default function <
     index + 1 + (tdata.current - 1) * tdata.size
 
   // 当不是懒加载的时候
-  if (!lazy) {
+  if (!initialHookOption.lazy) {
     onMounted(fetchTableList)
   }
 
