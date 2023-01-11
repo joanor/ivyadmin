@@ -33,12 +33,12 @@ export const useUserStore = defineStore('user', {
   }),
   getters: {},
   actions: {
-    loginByUser(data: LoginForm): Promise<boolean> {
+    loginByUser(data: Recordable): Promise<boolean> {
       return new Promise((resolve, reject) => {
         http
           .get<Token>({
             url: `api/login`,
-            // data,
+            data,
           })
           .then(res => {
             store.set(

@@ -1,33 +1,32 @@
-import { reactive, ref } from 'vue'
-import { useUserStore, LoginForm } from '@/store/modules/user'
-import { FormInstance } from 'element-plus'
+import { useUserStore } from '@/store/modules/user'
 import { submitForm } from '@/libs/formAndRules/form'
-import { generateFormAndRules } from 'ivy2'
-import { formAndRule } from '@/libs/formAndRules/records'
 import { useRouter } from 'vue-router'
-import { usePermissionStore } from '@/store'
+import useForm, { defineFormTypes } from './web/useForm'
 
 export default function () {
   const userStore = useUserStore()
-  const usePermission = usePermissionStore()
   const router = useRouter()
-  const [_form, _rules] = generateFormAndRules(
-    ['loginName', 'password'],
-    formAndRule
-  )
 
-  const loginForm = reactive(_form)
-  const loginFormRules = reactive(_rules)
-  const loginFormRef = ref<FormInstance>()
+  const formProps = defineFormTypes(['loginName', 'password'])
+  const {
+    form: loginForm,
+    rules: loginFormRules,
+    formRef: loginFormRef,
+  } = useForm<
+    {
+      [P in typeof formProps[number] as P extends string ? P : never]:
+        | string
+        | number
+    } & { [x: string]: string | number }
+  >(formProps)
 
   const handleLoginForm = submitForm(async (valid?: boolean) => {
     if (valid) {
       userStore
         .loginByUser({
           ...loginForm,
-        } as LoginForm)
+        })
         .then(res => {
-          console.log(`跳转的接口`, res)
           if (res) {
             router.push('/')
           }

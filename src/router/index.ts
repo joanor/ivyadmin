@@ -1,6 +1,6 @@
 import type { App } from 'vue'
 import type { AppRouteRecordRaw } from './types'
-import type { RouteRecordRaw } from 'vue-router'
+import { createWebHashHistory, RouteRecordRaw } from 'vue-router'
 import { createRouter, createWebHistory } from 'vue-router'
 import { normalRoutes, WHITE_NAME_LIST } from './routes'
 
@@ -43,7 +43,8 @@ export const routes: AppRouteRecordRaw[] = [
 ]
 
 export const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  // history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHashHistory(),
   routes: routes as unknown as RouteRecordRaw[],
   scrollBehavior: () => ({ left: 0, top: 0 }),
 })

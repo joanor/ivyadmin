@@ -2,7 +2,13 @@
  * 与表单相关的操作
  */
 
-import { BaseStruct, generateFormAndRules, isString, _console } from 'ivy2'
+import {
+  BaseStruct,
+  cloneDeep,
+  generateFormAndRules,
+  isString,
+  _console,
+} from 'ivy2'
 import type { RuleItem } from 'async-validator'
 import {
   ref,
@@ -99,14 +105,15 @@ export default function <FormStruct>(
     form: {} as FormStruct,
     rules: {} as Recordable,
     formColumns: [] as ResultColumnsData[], // 由于接口返回的columns和表单要展示的字段不完全一致，所以这里定义了新的变量formColumns用于保存页面中form要展示的字段
+    originalForm: {} as FormStruct, // 保存原始的form表单，用于重置数据
   })
 
   let attaches: BaseStruct<string, boolean>[] = []
   let pageShowFormColumnNames: string[] = []
   let pageOmitedFormColumnNames: string[] = []
 
-  // 接口返回列表，自动生成表单结构和校验规则
   if (columns) {
+    // 接口返回列表，自动生成表单结构和校验规则
     const unwatch = watchEffect(() => {
       // 若接口没有返回值，则直接返回
       if (columns.value.length === 0) return
@@ -118,11 +125,16 @@ export default function <FormStruct>(
       // 1、重新排序并过滤不需要出现在页面中的form字段
       const orderedColumnNames = Array.from(
         new Set([...expectOrderPropNames, ...myFormPropNames])
-      ).filter(
-        columnName =>
-          expectPickedColumnNames.indexOf(columnName) > -1 ||
-          expectOmitedColumnNames.indexOf(columnName) === -1
       )
+
+      expectOmitedColumnNames.forEach(columnName => {
+        if (expectPickedColumnNames.indexOf(columnName) === -1) {
+          const tmpIndex = orderedColumnNames.indexOf(columnName)
+          if (tmpIndex > -1) {
+            orderedColumnNames.splice(tmpIndex, 1)
+          }
+        }
+      })
 
       // 2、生成表单字段的对象数组(ResultColumnsData[]类型)
       const orderedColumns = orderedColumnNames
@@ -141,11 +153,13 @@ export default function <FormStruct>(
             column.selectOption = tmp.dictname
               ? dictionary[tmp.dictname] || []
               : customDictionary[column.name] || []
-            column.message = tmp.message || `请输入${column.title}`
+            column.message =
+              tmp.message ||
+              `请${column.trigger === 'blur' ? '输入' : '选择'}${column.title}`
             column.component = tmp.component || 'input'
           } else {
             // 若已经存在column.trigger，说明接口返回时已经确定的，是字典字段。属于select类型，trigger为change
-            // _console.error(`${column.name}存在默认的trigger`)
+            _console.error(`${column.name}存在默认的trigger`)
           }
         }
       })
@@ -195,6 +209,7 @@ export default function <FormStruct>(
         [...myFormPropNames],
         createFormAndRule([...attaches])
       )
+      data.originalForm = cloneDeep(_form) as UnwrapRef<FormStruct>
       data.form = _form as UnwrapRef<FormStruct>
       data.rules = _rules
       // 取消监听
@@ -231,6 +246,7 @@ export default function <FormStruct>(
       [...myFormPropNames],
       createFormAndRule([...attaches])
     )
+    data.originalForm = cloneDeep(_form) as UnwrapRef<FormStruct>
     data.form = _form as UnwrapRef<FormStruct>
     data.rules = _rules
   }
@@ -238,10 +254,11 @@ export default function <FormStruct>(
   // 重置表单
   const onResetForm = resetForm(() => {
     // 因为重置表单只能重置页面中展示的字段，而不在页面中展示的字段，没有办法通过resetFields来重置，所以这里人工设置一下
-    pageOmitedFormColumnNames.forEach(v => {
-      const t = attaches.find(v2 => v2.label === v)
-      ;(data.form as Recordable)[v] = t ? t.default : ''
-    })
+    // pageOmitedFormColumnNames.forEach(v => {
+    //   const t = attaches.find(v2 => v2.label === v)
+    //   ;(data.form as Recordable)[v] = t ? t.default : ''
+    // })
+    data.form = cloneDeep(data.originalForm)
   })
 
   // 当表单数据回显的时候
