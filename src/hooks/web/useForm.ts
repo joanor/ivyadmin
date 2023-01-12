@@ -24,23 +24,20 @@ import { FormInstance } from 'element-plus'
 import { createFormAndRule } from '@/libs/formAndRules/records'
 import { resetForm } from '@/libs/formAndRules/form'
 import { ResultColumnsData } from '@/api/model'
-import { useGlobalStore } from '@/store'
-import { FormPropRule } from '@/libs/shared/types'
+import type { DictionaryStruct, FormPropRule } from '@/libs/shared/types'
+import { generateDictionary } from './useDecodeDict'
 
 interface RuleItemExtend extends RuleItem {
   trigger: string
 }
 
 // 拿到字典，通过字典获取select选项的值
-const useGlobal = useGlobalStore()
 
 interface HookOption {
   expectOrderPropNames?: string[] // 期待的表单字段排序
   expectOmitedColumnNames?: string[] // 期待忽略的column字段
   expectPickedColumnNames?: string[] // 期待存在的表单字段
-  customDictionary?: {
-    [x: string]: Recordable[]
-  } // 用户自定义的字典（当接口没有返回的时候，自定义的字典，用于select选项）
+  customDictionary?: Record<string, DictionaryStruct[]> // 用户自定义的字典（当接口没有返回的时候，自定义的字典，用于select选项）
 }
 
 /**
@@ -64,9 +61,7 @@ export default function <FormStruct>(
     expectOrderPropNames: [] as [],
     expectOmitedColumnNames: [] as string[],
     expectPickedColumnNames: [] as string[],
-    customDictionary: {} as {
-      [x: string]: Recordable[]
-    },
+    customDictionary: {} as Record<string, DictionaryStruct[]>,
     ...option,
   }
 
@@ -77,9 +72,7 @@ export default function <FormStruct>(
     customDictionary,
   } = initialHookOption
 
-  const dictionary: Recordable = {
-    ...useGlobal.dicts,
-  }
+  const dictionary = generateDictionary(customDictionary)
 
   // 将用户传入的myFormProps转成FormPropRule[]类型
   const myHandledFormProps = myFormProps.map(v => {
@@ -152,13 +145,13 @@ export default function <FormStruct>(
             // 不存在column.trigger，说明不是接口返回的字典字段
             column.trigger = tmp.trigger || 'blur'
             column.selectOption = tmp.dictname
-              ? dictionary[tmp.dictname] || []
-              : customDictionary[column.name] || []
+              ? dictionary[tmp.dictname] ?? []
+              : []
             column.message = tmp.message || `请输入${column.title}`
             column.component = tmp.component || 'input'
           } else {
-            // 若已经存在column.trigger，说明接口返回时已经确定的，是字典字段。属于select类型，trigger为change
-            _console.error(`${column.name}存在默认的trigger`)
+            // 若已经存在column.trigger，说明接口返回时已经确定的，是字典字段。属于select类型，trigger为change（已经生成了上面的这些设置，所以这个else分支里，无须进行配置）
+            _console.success(`${column.name}存在默认的trigger`)
           }
         }
       })
@@ -192,7 +185,7 @@ export default function <FormStruct>(
           uniqIds.push(uniqId)
           return {
             label: column.name,
-            default: '',
+            default: column.default || '',
             required: expectRequiredPropNames.some(v => v === column.name),
             rule: [
               {
@@ -234,7 +227,7 @@ export default function <FormStruct>(
       uniqIds.push(uniqId)
       return {
         label: myProp.name,
-        default: '',
+        default: myProp.default || '',
         required: expectRequiredPropNames.some(v => v === myProp.name),
         rule: [
           {
@@ -294,10 +287,8 @@ export default function <FormStruct>(
    const searchFormProps = defineFormTypes(['companyName', 'address'])
    const { form: searchForm, formRef: searchFormRef } = useForm<
      {
-       [P in typeof searchFormProps[number] as P extends string ? P : never]:
-         | string
-         | number
-     } & { [x: string]: string | number }
+       [P in typeof searchFormProps[number] as P extends string ? P : never]:any
+     } & { [x: string]: any }
    >(searchFormProps)
  */
 export function defineFormTypes<T extends string>(

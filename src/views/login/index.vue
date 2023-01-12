@@ -56,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import useLogin from '@/hooks/useLogin'
 import useCommon from '@/hooks/useCommon'
 const checked = ref(false)

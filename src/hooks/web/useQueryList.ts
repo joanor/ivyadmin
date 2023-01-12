@@ -1,11 +1,11 @@
 /**
- * 带分页的列表
+ * 获取list
  */
 
 import { reactive, toRefs, UnwrapRef, onMounted } from 'vue'
 import { RequestOptions, textSize } from 'ivy2'
 import { useGlobalStore } from '@/store'
-import type { Result, ResultColumnsData, ResultPagingData } from '@/api/model'
+import type { Result, ResultColumnsData } from '@/api/model'
 import type { BaseURLType } from '@/libs/shared/types'
 
 // 拿到字典，去设置列的selectOption字段
@@ -17,7 +17,7 @@ interface HookOption<T, U> {
   expectOrderColumnNames?: string[] // 期待的列的排序
   expectPickedColumnNames?: string[] // 期待存在的列
   expectOmitedColumnNames?: string[] // 期待忽略的列
-  customColumn?: { name: keyof T; width?: string; fixed?: boolean }[] // 期待的列的宽度和列是否固定
+  customColumn?: { name: keyof T; width?: string; fixed?: boolean }[] // 期待的列的宽度
   lazy?: boolean // 是否懒加载，true表示是懒加载，不会在onMounted中执行，否则会在onMounted中执行
   opt?: RequestOptions
   baseWidth?: number // 基础的列宽
@@ -30,13 +30,13 @@ interface HookOption<T, U> {
  */
 export default function <
   Struct, // 数组table的对象类型
-  QueryParams extends Recordable = Recordable // 请求参数
+  QueryParams = any
 >(
   requestPromiseFunc: (
     data: QueryParams,
     baseUrl?: BaseURLType,
     opt?: RequestOptions
-  ) => Promise<Result<ResultPagingData<Struct>>>,
+  ) => Promise<Result<Struct>>,
   option: HookOption<Struct, QueryParams> = {}
 ) {
   const initialHookOption = {
@@ -53,14 +53,15 @@ export default function <
     ...option,
   }
 
+  /**
+   * 不带分页
+   */
+
   const tdata = reactive({
     loading: false, // 是否loading
-    tableData: [] as Struct[], // 列表数据
+    tableList: [] as Struct[], // 列表数据
     columns: [] as ResultColumnsData[], // 接口返回中的columns数据，原始的未经过过滤的列
     tableColumns: [] as ResultColumnsData[], // 也是columns数据，只是有的时候页面中的table的某些列不需要显示，这里通过tableColumns来保存处理后显示的列
-    total: 0, // 总数
-    size: 10, // pageSize
-    current: 1, // currentPage
     keywords: '', // 关键词
     currentSelectedRecord: {} as Struct, // 当前选中的record
   })
@@ -71,10 +72,12 @@ export default function <
     queryOpt?: RequestOptions
   ) => {
     tdata.loading = true
+
     const initialHookOption2 = {
       ...initialHookOption,
       ...hookQuery,
     }
+
     const {
       hookQueryParams,
       expectOrderColumnNames,
@@ -89,10 +92,6 @@ export default function <
     try {
       const { result, columns } = await requestPromiseFunc(
         {
-          page: {
-            current: tdata.current,
-            size: tdata.size,
-          },
           ...hookQueryParams, // 调用hooks时候传递的参数
           ...data, // 调用fetchTableList时传递的参数（可以覆盖上面调用hooks时候传递的参数）
         },
@@ -103,12 +102,12 @@ export default function <
         }
       )
 
-      tdata.tableData = result.records as unknown as UnwrapRef<Struct[]>
+      tdata.tableList = result as unknown as UnwrapRef<Struct[]>
       tdata.currentSelectedRecord = tdata
-        .tableData[0] as unknown as UnwrapRef<Struct>
+        .tableList[0] as unknown as UnwrapRef<Struct>
 
       if (columns) {
-        // 对整个columns的元素设置字典字段的选项
+        // 设置字典字段的选项
         columns.forEach(v => {
           const r = v.notes?.match(/[A-Z](_*[A-Z]*)+[A-Z]/g) // 匹配字典的名称
           if (r) {
@@ -143,16 +142,11 @@ export default function <
         // 4、重新排序并过滤需要忽略的列
         const orderedColumnNames = Array.from(
           new Set([...expectOrderColumnNames, ...column2Names])
+        ).filter(
+          columnName =>
+            expectPickedColumnNames.indexOf(columnName) > -1 ||
+            expectOmitedColumnNames.indexOf(columnName) === -1
         )
-
-        expectOmitedColumnNames.forEach(columnName => {
-          if (expectPickedColumnNames.indexOf(columnName) === -1) {
-            const tmpIndex = orderedColumnNames.indexOf(columnName)
-            if (tmpIndex > -1) {
-              orderedColumnNames.splice(tmpIndex, 1)
-            }
-          }
-        })
 
         // 生成排序并过滤过的列的对象数组
         const orderedColumns = orderedColumnNames
@@ -173,9 +167,6 @@ export default function <
         tdata.columns = columns
         tdata.tableColumns = orderedColumns
       }
-      tdata.total = result.total
-      tdata.size = result.size
-      tdata.current = result.current
     } catch (err) {
       console.error(err)
     } finally {
@@ -183,31 +174,10 @@ export default function <
     }
   }
 
-  /**
-   * 更改当前页
-   * @param current
-   */
-  const onCurrentPageChange = (current: number) => {
-    tdata.current = current
-  }
-
-  // 更改pageSize
-  const onPageSizeChange = (size: number) => {
-    tdata.size = size
-  }
-
   // 编辑行记录时
   const onCurrentSelectRecord = (row: Struct) => {
     tdata.currentSelectedRecord = row as UnwrapRef<Struct>
   }
-
-  /**
-   * 生成分页列表的序号
-   * table的第一条数据的index是从0开始的，所以index要加上1
-   * @param index
-   */
-  const onTableIndex = (index: number) =>
-    index + 1 + (tdata.current - 1) * tdata.size
 
   // 当不是懒加载的时候
   if (!initialHookOption.lazy) {
@@ -218,8 +188,5 @@ export default function <
     ...toRefs(tdata),
     fetchTableList, // 调用接口
     onCurrentSelectRecord, // 当编辑行数据的时候
-    onCurrentPageChange, // 当改变当前页的时候
-    onPageSizeChange, // 当改变size的时候
-    onTableIndex,
   }
 }
